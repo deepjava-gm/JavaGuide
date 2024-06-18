@@ -102,7 +102,21 @@ public ConcurrentHashMap(int initialCapacity,float loadFactor, int concurrencyLe
 3. 寻找并发级别 `concurrencyLevel` 之上最近的 **2 的幂次方**值，作为初始化容量大小，**默认是 16**。
 4. 记录 `segmentShift` 偏移量，这个值为【容量 = 2 的 N 次方】中的 N，在后面 Put 时计算位置时会用到。**默认是 32 - sshift = 28**.
 5. 记录 `segmentMask`，默认是 ssize - 1 = 16 -1 = 15.
-6. **初始化 `segments[0]`**，**默认大小为 2**，**负载因子 0.75**，**扩容阀值是 2\*0.75=1.5**，插入第二个值时才会进行扩容。
+6. **初始化 `segments[0]`**，**默认大小为 2**，**负载因子 0.75**，**扩容阀值是 2\*0.75=1.5**  由于threshold是int类型，所以向下取整 threshold=1，插入第二个值时才会进行扩容。
+` Segment<K,V> s0 =
+            new Segment<K,V>(loadFactor, (int)(cap * loadFactor),
+                             (HashEntry<K,V>[])new HashEntry[cap]);
+ Segment(float lf, int threshold, HashEntry<K,V>[] tab) {
+            this.loadFactor = lf;
+            this.threshold = threshold;
+            this.table = tab;
+        }
+
+if (c > threshold && tab.length < MAXIMUM_CAPACITY)
+                            rehash(node);
+   `
+当元素个数c > threshold（1） 时 才会rehash扩容，所以插入第二个值时才会进行扩容。
+
 
 ### 3. put
 
